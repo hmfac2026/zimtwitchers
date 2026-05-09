@@ -118,6 +118,13 @@ export default async function HomePage() {
             </Card>
           </div>
 
+          <Link
+            href="/birds"
+            className="inline-flex items-center justify-center self-center rounded-full bg-forest px-8 py-4 text-base font-semibold text-bone shadow-sm transition hover:bg-forest/90 active:translate-y-px sm:text-lg"
+          >
+            🐦 Spot a new bird
+          </Link>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-xl">{group?.name}</CardTitle>
