@@ -132,32 +132,28 @@ export async function LifeList({
               <li key={b.bird_id}>
                 <Link
                   href={`/birds/${b.ebird_code}`}
-                  className="group flex flex-col overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10 transition hover:ring-foreground/20"
+                  className="group relative flex flex-col overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10 transition hover:ring-foreground/20"
                 >
-                  <div
-                    className="relative w-full bg-cream/30"
-                    style={{ paddingBottom: "75%" }}
-                  >
-                    {b.user_photo_url || b.photo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={b.user_photo_url ?? b.photo_url ?? ""}
-                        alt={b.common_name}
-                        loading="lazy"
-                        referrerPolicy="no-referrer"
-                        className="absolute inset-0 h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-3xl text-brown/30">
-                        🪶
-                      </div>
-                    )}
-                    {b.user_photo_url ? (
-                      <span className="absolute left-2 top-2 rounded-full bg-forest/90 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-bone">
-                        Your photo
-                      </span>
-                    ) : null}
-                  </div>
+                  {b.user_photo_url || b.photo_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={b.user_photo_url ?? b.photo_url ?? ""}
+                      alt={b.common_name}
+                      width="500"
+                      height="375"
+                      decoding="async"
+                      className="block h-44 w-full bg-cream/30 object-cover sm:h-52"
+                    />
+                  ) : (
+                    <div className="flex h-44 w-full items-center justify-center bg-cream/30 text-3xl text-brown/30 sm:h-52">
+                      🪶
+                    </div>
+                  )}
+                  {b.user_photo_url ? (
+                    <span className="absolute left-2 top-2 rounded-full bg-forest/90 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-bone">
+                      Your photo
+                    </span>
+                  ) : null}
                   <div className="flex flex-col gap-1.5 p-4">
                     <h3 className="font-serif text-base font-medium leading-tight text-forest">
                       {b.common_name}

@@ -181,16 +181,16 @@ export default async function FeedPage() {
                     {photo ? (
                       <Link
                         href={`/birds/${bird.ebird_code}`}
-                        className="relative block w-full bg-cream/30"
-                        style={{ paddingBottom: "75%" }}
+                        className="block"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={photo}
                           alt={bird.common_name}
-                          loading="lazy"
-                          referrerPolicy="no-referrer"
-                          className="absolute inset-0 h-full w-full object-cover"
+                          width="500"
+                          height="375"
+                          decoding="async"
+                          className="block h-64 w-full bg-cream/30 object-cover sm:h-80"
                         />
                       </Link>
                     ) : null}

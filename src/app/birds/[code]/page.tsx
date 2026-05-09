@@ -58,24 +58,21 @@ export default async function BirdDetailPage({ params }: Props) {
           </Link>
 
           <div className="overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/10">
-            <div
-              className="relative w-full bg-cream/40"
-              style={{ paddingBottom: "62.5%" }}
-            >
-              {bird.photo_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={bird.photo_url}
-                  alt={bird.common_name}
-                  referrerPolicy="no-referrer"
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-6xl text-brown/30">
-                  🪶
-                </div>
-              )}
-            </div>
+            {bird.photo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={bird.photo_url}
+                alt={bird.common_name}
+                width="500"
+                height="312"
+                decoding="async"
+                className="block h-64 w-full bg-cream/40 object-cover sm:h-80 md:h-[26rem]"
+              />
+            ) : (
+              <div className="flex h-64 w-full items-center justify-center bg-cream/40 text-6xl text-brown/30 sm:h-80 md:h-[26rem]">
+                🪶
+              </div>
+            )}
 
             <div className="flex flex-col gap-5 p-6 sm:p-8">
               <header className="flex flex-col gap-2">

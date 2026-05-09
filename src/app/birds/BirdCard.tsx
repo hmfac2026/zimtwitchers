@@ -24,32 +24,28 @@ export function BirdCard({
   return (
     <Link
       href={`/birds/${ebird_code}`}
-      className="group flex flex-col overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10 transition hover:ring-foreground/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
+      className="group relative flex flex-col overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10 transition hover:ring-foreground/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
     >
-      <div
-        className="relative w-full bg-cream/30"
-        style={{ paddingBottom: "75%" }}
-      >
-        {photo_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={photo_url}
-            alt={common_name}
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            className="absolute inset-0 h-full w-full object-cover transition group-hover:scale-[1.02]"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-4xl text-brown/30">
-            🪶
-          </div>
-        )}
-        {seen ? (
-          <span className="absolute right-2 top-2 rounded-full bg-forest px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-bone">
-            Seen
-          </span>
-        ) : null}
-      </div>
+      {photo_url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={photo_url}
+          alt={common_name}
+          width="500"
+          height="375"
+          decoding="async"
+          className="block h-44 w-full bg-cream/30 object-cover sm:h-52"
+        />
+      ) : (
+        <div className="flex h-44 w-full items-center justify-center bg-cream/30 text-4xl text-brown/30 sm:h-52">
+          🪶
+        </div>
+      )}
+      {seen ? (
+        <span className="absolute right-2 top-2 rounded-full bg-forest px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-bone">
+          Seen
+        </span>
+      ) : null}
       <div className="flex flex-col gap-1.5 p-4">
         <h3 className="font-serif text-base font-medium leading-tight text-forest">
           {common_name}
