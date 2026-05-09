@@ -122,9 +122,10 @@ export default async function HomePage() {
             <CardHeader>
               <CardTitle className="text-xl">{group?.name}</CardTitle>
               <CardDescription>
-                {memberList.length}{" "}
-                {memberList.length === 1 ? "twitcher" : "twitchers"} in this
-                flock. Tap a name to see what they&apos;ve spotted.
+                {memberList.length}
+                {" "}
+                {memberList.length === 1 ? "twitcher" : "twitchers"}
+                {" in this flock. Tap a name to see what they’ve spotted."}
               </CardDescription>
             </CardHeader>
             <CardContent>
