@@ -179,14 +179,17 @@ export default async function FeedPage() {
                     </div>
 
                     {photo ? (
-                      <Link href={`/birds/${bird.ebird_code}`} className="block">
+                      <Link
+                        href={`/birds/${bird.ebird_code}`}
+                        className="relative block aspect-[4/3] w-full bg-cream/30"
+                      >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={photo}
                           alt={bird.common_name}
                           loading="lazy"
                           referrerPolicy="no-referrer"
-                          className="aspect-[4/3] w-full bg-cream/30 object-cover"
+                          className="absolute inset-0 h-full w-full object-cover"
                         />
                       </Link>
                     ) : null}

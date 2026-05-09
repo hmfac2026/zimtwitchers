@@ -10,7 +10,7 @@ type AppHeaderProps = {
 const NAV: { id: NonNullable<AppHeaderProps["active"]>; href: string; label: string }[] = [
   { id: "home",        href: "/home",        label: "Home" },
   { id: "feed",        href: "/feed",        label: "Feed" },
-  { id: "leaderboard", href: "/leaderboard", label: "Top" },
+  { id: "leaderboard", href: "/leaderboard", label: "Leaderboard" },
   { id: "catalog",     href: "/birds",       label: "Birds" },
   { id: "me",          href: "/me",          label: "Me" },
 ];
