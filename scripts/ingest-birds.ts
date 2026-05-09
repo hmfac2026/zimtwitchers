@@ -112,7 +112,10 @@ async function wikiSummary(title: string): Promise<WikiSummary | null> {
   return data;
 }
 
-function upscaleThumbnail(url: string, width = 640): string {
+// Wikimedia restricts hot-linking to a specific set of pre-cached sizes:
+// 120, 250, 330, 500, 960, 1280, 1920 (anything else returns 400). 500 px is
+// the sweet spot for a mobile-first catalog grid + detail hero.
+function upscaleThumbnail(url: string, width = 500): string {
   // Wikimedia thumbs look like .../{size}px-Filename.jpg.
   return url.replace(/\/(\d+)px-([^/]+)$/, `/${width}px-$2`);
 }
