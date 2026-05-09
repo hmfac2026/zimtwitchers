@@ -1,10 +1,14 @@
--- 0002: fully qualify pgcrypto calls inside SECURITY DEFINER functions.
+-- 0002: drop pgcrypto from invite-code generation
 --
--- Supabase installs pgcrypto into the `extensions` schema, but our group
--- helpers run with `set search_path = public`, so an unqualified
--- gen_random_bytes() call fails with "function gen_random_bytes(integer)
--- does not exist". Qualifying the call (extensions.gen_random_bytes) is
--- the recommended fix.
+-- The original create_group_with_member used extensions.gen_random_bytes,
+-- which lives in Supabase's `extensions` schema. SECURITY DEFINER functions
+-- with `set search_path = public` can't see it, and qualifying the call
+-- still failed in this project (likely a permissions issue on the
+-- extensions schema for the `authenticated` role).
+--
+-- Switch to gen_random_uuid(), which is in core Postgres 13+ and is already
+-- proven to work in this DB (it's the default for `groups.id`). Take the
+-- first 8 hex chars of the UUID as the invite code.
 
 create or replace function public.create_group_with_member(
   p_group_name   text,
@@ -28,7 +32,7 @@ begin
     raise exception 'already_in_group';
   end if;
 
-  v_invite_code := upper(substr(encode(extensions.gen_random_bytes(6), 'hex'), 1, 8));
+  v_invite_code := upper(substr(gen_random_uuid()::text, 1, 8));
 
   insert into public.groups (name, invite_code, created_by)
   values (trim(p_group_name), v_invite_code, v_uid)
