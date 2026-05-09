@@ -7,7 +7,9 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Run on every request except Next.js internals and static assets.
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|avif)$).*)",
+    // Run on every request except Next.js internals, static assets, the
+    // service worker, and the web manifest (those need to be reachable
+    // without a session — the proxy would otherwise 307 them to /sign-in).
+    "/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|avif|js|json|webmanifest)$).*)",
   ],
 };

@@ -74,6 +74,13 @@ export default async function HomePage() {
             </p>
           </section>
 
+          <Link
+            href="/birds"
+            className="inline-flex items-center justify-center self-center rounded-full bg-forest px-8 py-4 text-base font-semibold text-bone shadow-sm transition hover:bg-forest/90 active:translate-y-px sm:text-lg"
+          >
+            🐦 Spot a new bird
+          </Link>
+
           <div className="flex flex-col gap-4 sm:flex-row">
             <Card className="flex-1">
               <CardHeader>
@@ -117,13 +124,6 @@ export default async function HomePage() {
               </CardContent>
             </Card>
           </div>
-
-          <Link
-            href="/birds"
-            className="inline-flex items-center justify-center self-center rounded-full bg-forest px-8 py-4 text-base font-semibold text-bone shadow-sm transition hover:bg-forest/90 active:translate-y-px sm:text-lg"
-          >
-            🐦 Spot a new bird
-          </Link>
 
           <Card>
             <CardHeader>
