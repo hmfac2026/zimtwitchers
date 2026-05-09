@@ -38,13 +38,11 @@ export default async function BirdDetailPage({ params }: Props) {
 
   if (!bird) notFound();
 
-  const { data: sightings, count: sightingCount } = await supabase
+  const { count: sightingCount } = await supabase
     .from("sightings")
-    .select("id", { count: "exact" })
+    .select("id", { count: "exact", head: true })
     .eq("user_id", user.id)
     .eq("bird_id", bird.id);
-
-  const alreadySeen = (sightings?.length ?? 0) > 0;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -116,7 +114,6 @@ export default async function BirdDetailPage({ params }: Props) {
 
               <MarkSeenForm
                 birdId={bird.id}
-                alreadySeen={alreadySeen}
                 totalSightings={sightingCount ?? 0}
               />
 

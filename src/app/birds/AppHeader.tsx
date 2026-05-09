@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 
 type AppHeaderProps = {
-  active?: "catalog" | "home";
+  active?: "catalog" | "home" | "me";
 };
 
 export function AppHeader({ active = "catalog" }: AppHeaderProps) {
@@ -29,6 +29,14 @@ export function AppHeader({ active = "catalog" }: AppHeaderProps) {
             }`}
           >
             Catalog
+          </Link>
+          <Link
+            href="/me"
+            className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+              active === "me" ? "text-forest" : "text-brown/70 hover:text-brown"
+            }`}
+          >
+            My list
           </Link>
           <form action="/auth/sign-out" method="post">
             <Button
