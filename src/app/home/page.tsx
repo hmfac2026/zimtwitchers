@@ -97,7 +97,7 @@ export default async function HomePage() {
 
             <Card className="flex-1">
               <CardHeader>
-                <CardTitle className="text-xl">Your life list</CardTitle>
+                <CardTitle className="text-xl">Your sightings list</CardTitle>
                 <CardDescription>
                   {me && me.stats.uniqueSpecies > 0
                     ? `${me.stats.uniqueSpecies} species, ${me.stats.totalSightings} sightings.`
