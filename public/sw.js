@@ -10,9 +10,8 @@
  * those are picked up automatically by network-first).
  */
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const CACHE_NAME = `zim-twitchers-${CACHE_VERSION}`;
-const IMAGE_CACHE = `zim-twitchers-images-${CACHE_VERSION}`;
 
 const PRECACHE_URLS = [
   "/manifest.webmanifest",
@@ -48,12 +47,7 @@ self.addEventListener("activate", (event) => {
       const keys = await caches.keys();
       await Promise.all(
         keys
-          .filter(
-            (k) =>
-              k.startsWith("zim-twitchers-") &&
-              k !== CACHE_NAME &&
-              k !== IMAGE_CACHE,
-          )
+          .filter((k) => k.startsWith("zim-twitchers-") && k !== CACHE_NAME)
           .map((k) => caches.delete(k)),
       );
       await self.clients.claim();
@@ -67,24 +61,20 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(req.url);
 
-  // Never intercept auth or API calls.
+  // Never intercept auth, API calls, or Supabase storage.
   if (url.hostname.endsWith(".supabase.co")) return;
   if (url.pathname.startsWith("/auth/")) return;
   if (url.pathname.startsWith("/api/")) return;
 
-  // Wikimedia image thumbnails: cache-first.
-  if (url.hostname === "upload.wikimedia.org") {
-    event.respondWith(cacheFirstImage(req));
-    return;
-  }
+  // Don't intercept cross-origin requests at all — let the browser
+  // handle them natively. Wikimedia thumbnails are no-cors, and
+  // routing them through the SW caused intermittent failures on
+  // mobile Safari (opaque-response handling differs across browsers).
+  if (url.origin !== self.location.origin) return;
 
-  // Same-origin GET: network-first with cache fallback (covers HTML and
-  // Next.js JS chunks). _next/static/* is hashed so cache-first is safer
-  // and faster, but network-first is correct enough for v1.
-  if (url.origin === self.location.origin) {
-    event.respondWith(networkFirst(req));
-    return;
-  }
+  // Same-origin GET: network-first with cache fallback (covers HTML
+  // and Next.js JS chunks).
+  event.respondWith(networkFirst(req));
 });
 
 async function networkFirst(request) {
@@ -107,21 +97,3 @@ async function networkFirst(request) {
   }
 }
 
-async function cacheFirstImage(request) {
-  const cache = await caches.open(IMAGE_CACHE);
-  const cached = await cache.match(request);
-  if (cached) {
-    // Refresh in background, but return cached immediately.
-    fetch(request)
-      .then((res) => {
-        if (res && res.ok) cache.put(request, res.clone()).catch(() => {});
-      })
-      .catch(() => {});
-    return cached;
-  }
-  const response = await fetch(request);
-  if (response && response.ok) {
-    cache.put(request, response.clone()).catch(() => {});
-  }
-  return response;
-}
