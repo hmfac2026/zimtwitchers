@@ -12,8 +12,9 @@ import { cn } from "@/lib/utils";
 import { RARITY_SCORE, type RarityTier } from "@/lib/rarity";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "../birds/AppHeader";
+import { RemoveMemberButton } from "./RemoveMemberButton";
 
-type GroupRow = { name: string; invite_code: string };
+type GroupRow = { name: string; invite_code: string; created_by: string | null };
 type MemberRow = {
   user_id: string;
   display_name: string;
@@ -30,7 +31,7 @@ export default async function HomePage() {
 
   const { data: membership } = await supabase
     .from("group_members")
-    .select("display_name, group_id, groups(name, invite_code)")
+    .select("display_name, group_id, groups(name, invite_code, created_by)")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -39,6 +40,8 @@ export default async function HomePage() {
   const group = (
     Array.isArray(membership.groups) ? membership.groups[0] : membership.groups
   ) as GroupRow | null;
+
+  const isAdmin = group?.created_by === user.id;
 
   const { data: members } = await supabase
     .from("group_members")
@@ -136,32 +139,49 @@ export default async function HomePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {isAdmin ? (
+                <p className="mb-3 rounded-md bg-cream/50 px-3 py-2 text-xs text-brown/70">
+                  You created this flock. Use the Remove button to delete a member
+                  and everything they&apos;ve logged.
+                </p>
+              ) : null}
               <ul className="flex flex-col divide-y divide-brown/10">
                 {memberStats.map((m) => {
                   const isYou = m.user_id === user.id;
+                  const showRemove = isAdmin && !isYou;
                   return (
                     <li key={m.user_id} className="py-3 first:pt-0 last:pb-0">
-                      <Link
-                        href={isYou ? "/me" : `/life-list/${m.user_id}`}
-                        className="flex items-center justify-between gap-3 rounded-md px-2 py-1 -mx-2 hover:bg-cream/40"
-                      >
-                        <div className="flex flex-col">
-                          <span className="font-medium text-brown">
-                            {m.display_name}
-                            {isYou ? (
-                              <span className="ml-2 rounded-full bg-cream px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-brown/70">
-                                you
-                              </span>
-                            ) : null}
-                          </span>
-                          <span className="text-xs text-brown/55">
-                            {m.stats.uniqueSpecies} species ·{" "}
-                            {m.stats.totalSightings} sightings · score{" "}
-                            {m.stats.rarityScore}
-                          </span>
-                        </div>
-                        <span className="text-brown/40">→</span>
-                      </Link>
+                      <div className="flex items-center justify-between gap-3 -mx-2 px-2">
+                        <Link
+                          href={isYou ? "/me" : `/life-list/${m.user_id}`}
+                          className="flex flex-1 items-center gap-3 rounded-md py-1 hover:bg-cream/40"
+                        >
+                          <div className="flex flex-1 flex-col">
+                            <span className="font-medium text-brown">
+                              {m.display_name}
+                              {isYou ? (
+                                <span className="ml-2 rounded-full bg-cream px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-brown/70">
+                                  you
+                                </span>
+                              ) : null}
+                            </span>
+                            <span className="text-xs text-brown/55">
+                              {m.stats.uniqueSpecies} species ·{" "}
+                              {m.stats.totalSightings} sightings · score{" "}
+                              {m.stats.rarityScore}
+                            </span>
+                          </div>
+                          {!showRemove ? (
+                            <span className="text-brown/40">→</span>
+                          ) : null}
+                        </Link>
+                        {showRemove ? (
+                          <RemoveMemberButton
+                            userId={m.user_id}
+                            displayName={m.display_name}
+                          />
+                        ) : null}
+                      </div>
                     </li>
                   );
                 })}
