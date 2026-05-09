@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { RarityBadge } from "@/components/RarityBadge";
 import type { RarityTier } from "@/lib/rarity";
@@ -29,13 +28,13 @@ export function BirdCard({
     >
       <div className="relative aspect-[4/3] w-full bg-cream/30">
         {photo_url ? (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             src={photo_url}
             alt={common_name}
-            fill
-            sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
-            className="object-cover transition group-hover:scale-[1.02]"
-            unoptimized
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            className="absolute inset-0 h-full w-full object-cover transition group-hover:scale-[1.02]"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-4xl text-brown/30">

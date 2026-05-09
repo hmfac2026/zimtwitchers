@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
@@ -63,14 +62,12 @@ export default async function BirdDetailPage({ params }: Props) {
           <div className="overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/10">
             <div className="relative aspect-[16/10] w-full bg-cream/40">
               {bird.photo_url ? (
-                <Image
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
                   src={bird.photo_url}
                   alt={bird.common_name}
-                  fill
-                  sizes="(min-width: 768px) 768px, 100vw"
-                  priority
-                  className="object-cover"
-                  unoptimized
+                  referrerPolicy="no-referrer"
+                  className="absolute inset-0 h-full w-full object-cover"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-6xl text-brown/30">
