@@ -1,6 +1,16 @@
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { buttonVariants } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/server";
 
-export default function HomePage() {
+export default async function LandingPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) redirect("/home");
+
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
       <div className="flex max-w-md flex-col items-center gap-6">
@@ -16,11 +26,19 @@ export default function HomePage() {
           </p>
         </div>
         <p className="text-sm text-muted-foreground">
-          Coming soon — a private birdwatching app for you and your friends.
+          A private birdwatching app for you and your friends.
         </p>
-        <Button size="lg" className="mt-2" disabled>
-          Sign in
-        </Button>
+        <div className="mt-2 flex flex-col items-stretch gap-3 sm:flex-row">
+          <Link href="/sign-in" className={buttonVariants({ size: "lg" })}>
+            Sign in
+          </Link>
+          <Link
+            href="/sign-up"
+            className={buttonVariants({ size: "lg", variant: "outline" })}
+          >
+            Create account
+          </Link>
+        </div>
       </div>
     </main>
   );
