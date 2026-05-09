@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Lora } from "next/font/google";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import "./globals.css";
 
 const inter = Inter({
@@ -18,6 +19,7 @@ export const metadata: Metadata = {
   title: "Zim Twitchers",
   description:
     "A birdwatching app for friends — track sightings and compete on the leaderboard.",
+  applicationName: "Zim Twitchers",
   icons: {
     icon: [
       { url: "/logo/pitta-icon.svg", type: "image/svg+xml" },
@@ -25,6 +27,14 @@ export const metadata: Metadata = {
       { url: "/logo/icon-512.png", type: "image/png", sizes: "512x512" },
     ],
     apple: [{ url: "/logo/icon-512.png", sizes: "512x512" }],
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Twitchers",
+    statusBarStyle: "default",
+  },
+  formatDetection: {
+    telephone: false,
   },
 };
 
@@ -42,7 +52,10 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${lora.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <ServiceWorkerRegister />
+      </body>
     </html>
   );
 }
