@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Logo } from "@/components/Logo";
 
 type AuthShellProps = {
   title: string;
@@ -19,14 +20,12 @@ type AuthShellProps = {
 export function AuthShell({ title, description, children, footer }: AuthShellProps) {
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-4 py-10">
-      <div className="mb-8 flex flex-col items-center gap-2 text-center">
-        <Link href="/" className="text-2xl font-semibold tracking-tight">
-          🦜 Zim Twitchers
-        </Link>
-      </div>
+      <Link href="/" className="mb-10 inline-flex" aria-label="Zim Twitchers home">
+        <Logo size="md" />
+      </Link>
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>{title}</CardTitle>
+          <CardTitle className="text-xl">{title}</CardTitle>
           {description ? <CardDescription>{description}</CardDescription> : null}
         </CardHeader>
         <CardContent>{children}</CardContent>

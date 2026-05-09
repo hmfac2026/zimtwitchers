@@ -1,21 +1,35 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Inter, Lora } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const lora = Lora({
+  variable: "--font-lora",
   subsets: ["latin"],
+  weight: ["500"],
 });
 
 export const metadata: Metadata = {
   title: "Zim Twitchers",
   description:
     "A birdwatching app for friends — track sightings and compete on the leaderboard.",
+  icons: {
+    icon: [
+      { url: "/logo/pitta-icon.svg", type: "image/svg+xml" },
+      { url: "/logo/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/logo/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/logo/icon-512.png", sizes: "512x512" }],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#2D5016",
 };
 
 export default function RootLayout({
@@ -26,11 +40,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${lora.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
-        {children}
-      </body>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }
