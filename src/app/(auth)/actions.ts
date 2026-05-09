@@ -1,9 +1,20 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 type ActionResult = { error: string } | undefined;
+
+async function callbackUrl(): Promise<string> {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL;
+  if (explicit) return `${explicit.replace(/\/$/, "")}/auth/callback`;
+
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  return `${proto}://${host}/auth/callback`;
+}
 
 export async function signIn(
   _prev: ActionResult,
@@ -42,7 +53,11 @@ export async function signUp(
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: await callbackUrl() },
+  });
 
   if (error) {
     return { error: error.message };
