@@ -58,7 +58,10 @@ export default async function BirdDetailPage({ params }: Props) {
           </Link>
 
           <div className="overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/10">
-            <div className="relative aspect-[16/10] w-full bg-cream/40">
+            <div
+              className="relative w-full bg-cream/40"
+              style={{ paddingBottom: "62.5%" }}
+            >
               {bird.photo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img

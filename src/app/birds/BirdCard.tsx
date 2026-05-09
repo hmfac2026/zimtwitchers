@@ -26,7 +26,10 @@ export function BirdCard({
       href={`/birds/${ebird_code}`}
       className="group flex flex-col overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10 transition hover:ring-foreground/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
     >
-      <div className="relative aspect-[4/3] w-full bg-cream/30">
+      <div
+        className="relative w-full bg-cream/30"
+        style={{ paddingBottom: "75%" }}
+      >
         {photo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

@@ -181,7 +181,8 @@ export default async function FeedPage() {
                     {photo ? (
                       <Link
                         href={`/birds/${bird.ebird_code}`}
-                        className="relative block aspect-[4/3] w-full bg-cream/30"
+                        className="relative block w-full bg-cream/30"
+                        style={{ paddingBottom: "75%" }}
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img

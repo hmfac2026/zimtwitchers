@@ -134,7 +134,10 @@ export async function LifeList({
                   href={`/birds/${b.ebird_code}`}
                   className="group flex flex-col overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10 transition hover:ring-foreground/20"
                 >
-                  <div className="relative aspect-[4/3] w-full bg-cream/30">
+                  <div
+                    className="relative w-full bg-cream/30"
+                    style={{ paddingBottom: "75%" }}
+                  >
                     {b.user_photo_url || b.photo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
