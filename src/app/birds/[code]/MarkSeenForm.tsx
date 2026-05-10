@@ -85,17 +85,17 @@ export function MarkSeenForm({ birdId, totalSightings }: Props) {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor={photoInputId}>Photo (optional)</Label>
+            <Label htmlFor={photoInputId}>Photos (optional)</Label>
             <Input
               id={photoInputId}
-              name="photo"
+              name="photos"
               type="file"
               accept="image/*"
-              capture="environment"
+              multiple
               className="h-auto py-2"
             />
             <p className="text-xs text-brown/55">
-              Up to 5MB — JPEG, PNG, WebP, or HEIC.
+              Up to 6 photos, 5MB each — JPEG, PNG, WebP, or HEIC.
             </p>
           </div>
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">

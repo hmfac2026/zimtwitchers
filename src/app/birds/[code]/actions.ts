@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 const PHOTO_BUCKET = "sighting-photos";
-const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5 MB per photo
+const MAX_PHOTOS = 6;
 const ALLOWED_MIME = new Set([
   "image/jpeg",
   "image/png",
@@ -25,7 +26,7 @@ export async function markAsSeen(
   const rawCount = formData.get("count");
   const rawNotes = formData.get("notes");
   const rawObservedAt = formData.get("observed_at");
-  const photoEntry = formData.get("photo");
+  const photoEntries = formData.getAll("photos");
 
   let count = 1;
   if (rawCount && String(rawCount).trim() !== "") {
@@ -50,16 +51,19 @@ export async function markAsSeen(
     observedAt = d.toISOString();
   }
 
-  // Validate photo if provided
-  let photoFile: File | null = null;
-  if (photoEntry && photoEntry instanceof File && photoEntry.size > 0) {
-    if (photoEntry.size > MAX_PHOTO_BYTES) {
-      return { error: "Photo is over 5MB — try a smaller one." };
+  const photoFiles: File[] = [];
+  for (const entry of photoEntries) {
+    if (!(entry instanceof File) || entry.size === 0) continue;
+    if (entry.size > MAX_PHOTO_BYTES) {
+      return { error: "One of those photos is over 5MB — try smaller ones." };
     }
-    if (photoEntry.type && !ALLOWED_MIME.has(photoEntry.type)) {
-      return { error: "Photo must be JPEG, PNG, WebP, or HEIC." };
+    if (entry.type && !ALLOWED_MIME.has(entry.type)) {
+      return { error: "Photos must be JPEG, PNG, WebP, or HEIC." };
     }
-    photoFile = photoEntry;
+    photoFiles.push(entry);
+  }
+  if (photoFiles.length > MAX_PHOTOS) {
+    return { error: `You can attach up to ${MAX_PHOTOS} photos per sighting.` };
   }
 
   const supabase = await createClient();
@@ -76,7 +80,6 @@ export async function markAsSeen(
     .maybeSingle();
   if (!membership) return { error: "Join a group first." };
 
-  // Insert sighting first (without photo) so we have its UUID for the path.
   const { data: inserted, error: insertErr } = await supabase
     .from("sightings")
     .insert({
@@ -94,30 +97,36 @@ export async function markAsSeen(
     return { error: insertErr?.message ?? "Could not log sighting." };
   }
 
-  if (photoFile) {
-    const ext = filenameExt(photoFile.name) ?? mimeExt(photoFile.type) ?? "jpg";
-    const path = `${user.id}/${inserted.id}.${ext}`;
+  if (photoFiles.length > 0) {
+    const photoUrls: string[] = [];
+    for (let i = 0; i < photoFiles.length; i++) {
+      const file = photoFiles[i];
+      const ext = filenameExt(file.name) ?? mimeExt(file.type) ?? "jpg";
+      const path = `${user.id}/${inserted.id}/${i}.${ext}`;
 
-    const { error: upErr } = await supabase.storage
-      .from(PHOTO_BUCKET)
-      .upload(path, photoFile, {
-        contentType: photoFile.type || "application/octet-stream",
-        upsert: true,
-      });
+      const { error: upErr } = await supabase.storage
+        .from(PHOTO_BUCKET)
+        .upload(path, file, {
+          contentType: file.type || "application/octet-stream",
+          upsert: true,
+        });
 
-    if (upErr) {
-      // Sighting is logged; photo failed — surface a soft warning but keep
-      // the sighting (caller can re-upload later if we add edit UI).
-      return {
-        error: `Sighting saved, but photo upload failed: ${upErr.message}`,
-      };
+      if (upErr) {
+        return {
+          error: `Sighting saved, but photo ${i + 1} failed to upload: ${upErr.message}`,
+        };
+      }
+
+      const { data: pub } = supabase.storage
+        .from(PHOTO_BUCKET)
+        .getPublicUrl(path);
+      if (pub?.publicUrl) photoUrls.push(pub.publicUrl);
     }
 
-    const { data: pub } = supabase.storage.from(PHOTO_BUCKET).getPublicUrl(path);
-    if (pub?.publicUrl) {
+    if (photoUrls.length > 0) {
       await supabase
         .from("sightings")
-        .update({ photo_url: pub.publicUrl })
+        .update({ photos: photoUrls })
         .eq("id", inserted.id);
     }
   }
@@ -125,6 +134,7 @@ export async function markAsSeen(
   revalidatePath("/birds");
   revalidatePath(`/birds/${birdId}`);
   revalidatePath("/me");
+  revalidatePath("/feed");
   return { ok: true };
 }
 

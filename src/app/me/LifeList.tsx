@@ -18,7 +18,7 @@ type SightingRow = {
   bird_id: string;
   observed_at: string;
   count: number;
-  photo_url: string | null;
+  photos: string[] | null;
   birds: {
     id: string;
     ebird_code: string;
@@ -52,7 +52,7 @@ export async function LifeList({
   const { data: rows } = await supabase
     .from("sightings")
     .select(
-      "bird_id, observed_at, count, photo_url, birds(id, ebird_code, common_name, scientific_name, photo_url, rarity_tier)",
+      "bird_id, observed_at, count, photos, birds(id, ebird_code, common_name, scientific_name, photo_url, rarity_tier)",
     )
     .eq("user_id", userId)
     .eq("group_id", groupId)
@@ -66,11 +66,12 @@ export async function LifeList({
   for (const s of sightings) {
     if (!s.birds) continue;
     totalSightings += s.count ?? 1;
+    const firstPhoto = s.photos && s.photos.length > 0 ? s.photos[0] : null;
     const existing = aggregated.get(s.bird_id);
     if (existing) {
       existing.sighting_count += 1;
-      if (!existing.user_photo_url && s.photo_url) {
-        existing.user_photo_url = s.photo_url;
+      if (!existing.user_photo_url && firstPhoto) {
+        existing.user_photo_url = firstPhoto;
       }
     } else {
       aggregated.set(s.bird_id, {
@@ -82,7 +83,7 @@ export async function LifeList({
         photo_url: s.birds.photo_url,
         sighting_count: 1,
         most_recent: s.observed_at,
-        user_photo_url: s.photo_url ?? null,
+        user_photo_url: firstPhoto,
       });
     }
   }

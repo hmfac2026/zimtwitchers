@@ -16,7 +16,7 @@ type SightingRow = {
   observed_at: string;
   count: number;
   notes: string | null;
-  photo_url: string | null;
+  photos: string[] | null;
   location_lat: number | null;
   location_lng: number | null;
   birds: {
@@ -50,7 +50,7 @@ export default async function FeedPage() {
   const { data: sightingsData } = await supabase
     .from("sightings")
     .select(
-      "id, user_id, observed_at, count, notes, photo_url, location_lat, location_lng, birds(ebird_code, common_name, scientific_name, photo_url, rarity_tier)",
+      "id, user_id, observed_at, count, notes, photos, location_lat, location_lng, birds(ebird_code, common_name, scientific_name, photo_url, rarity_tier)",
     )
     .eq("group_id", groupId)
     .order("observed_at", { ascending: false })
@@ -137,7 +137,9 @@ export default async function FeedPage() {
                 if (!bird) return null;
                 const displayName = nameByUser.get(s.user_id) ?? "Twitcher";
                 const r = reactionsBySighting.get(s.id)!;
-                const photo = s.photo_url ?? bird.photo_url ?? null;
+                const userPhotos = s.photos ?? [];
+                const fallbackPhoto =
+                  userPhotos.length === 0 ? bird.photo_url : null;
                 return (
                   <li
                     key={s.id}
@@ -178,14 +180,49 @@ export default async function FeedPage() {
                       <RarityBadge tier={bird.rarity_tier} size="sm" />
                     </div>
 
-                    {photo ? (
+                    {userPhotos.length > 1 ? (
+                      <div className="flex snap-x snap-mandatory gap-1 overflow-x-auto bg-cream/30">
+                        {userPhotos.map((p, i) => (
+                          <Link
+                            key={i}
+                            href={`/birds/${bird.ebird_code}`}
+                            className="block shrink-0 snap-start"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={p}
+                              alt={`${bird.common_name} photo ${i + 1} of ${userPhotos.length}`}
+                              width="500"
+                              height="375"
+                              decoding="async"
+                              className="block h-64 w-auto object-cover sm:h-80"
+                            />
+                          </Link>
+                        ))}
+                      </div>
+                    ) : userPhotos.length === 1 ? (
                       <Link
                         href={`/birds/${bird.ebird_code}`}
                         className="block"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={photo}
+                          src={userPhotos[0]}
+                          alt={bird.common_name}
+                          width="500"
+                          height="375"
+                          decoding="async"
+                          className="block h-64 w-full bg-cream/30 object-cover sm:h-80"
+                        />
+                      </Link>
+                    ) : fallbackPhoto ? (
+                      <Link
+                        href={`/birds/${bird.ebird_code}`}
+                        className="block"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={fallbackPhoto}
                           alt={bird.common_name}
                           width="500"
                           height="375"
