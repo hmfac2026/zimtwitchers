@@ -114,6 +114,7 @@ export default async function BirdDetailPage({ params }: Props) {
 
               <MarkSeenForm
                 birdId={bird.id}
+                userId={user.id}
                 totalSightings={sightingCount ?? 0}
               />
 

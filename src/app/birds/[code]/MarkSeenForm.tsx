@@ -6,18 +6,76 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { createClient } from "@/lib/supabase/client";
 import { markAsSeen } from "./actions";
 
 type State = { error?: string; ok?: boolean };
 
 type Props = {
   birdId: string;
+  userId: string;
   totalSightings: number;
 };
 
-export function MarkSeenForm({ birdId, totalSightings }: Props) {
+const PHOTO_BUCKET = "sighting-photos";
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+const ALLOWED_MIME = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+]);
+const ALLOWED_EXTS = new Set(["jpg", "jpeg", "png", "webp", "heic", "heif"]);
+
+export function MarkSeenForm({ birdId, userId, totalSightings }: Props) {
   const [state, action, isPending] = useActionState<State, FormData>(
-    async (_prev, formData) => markAsSeen(_prev, formData),
+    async (prev, formData) => {
+      const photo = formData.get("photo");
+      const photoFile =
+        photo instanceof File && photo.size > 0 ? photo : null;
+
+      let photoExt: string | null = null;
+      const sightingId = crypto.randomUUID();
+
+      if (photoFile) {
+        if (photoFile.size > MAX_PHOTO_BYTES) {
+          return { error: "Photo is over 10MB — try a smaller one." };
+        }
+        if (photoFile.type && !ALLOWED_MIME.has(photoFile.type)) {
+          return { error: "Photo must be JPEG, PNG, WebP, or HEIC." };
+        }
+        const ext =
+          filenameExt(photoFile.name) ?? mimeExt(photoFile.type) ?? "jpg";
+        if (!ALLOWED_EXTS.has(ext)) {
+          return { error: "Photo must be JPEG, PNG, WebP, or HEIC." };
+        }
+
+        const supabase = createClient();
+        const path = `${userId}/${sightingId}/0.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from(PHOTO_BUCKET)
+          .upload(path, photoFile, {
+            contentType: photoFile.type || "application/octet-stream",
+            upsert: true,
+          });
+        if (upErr) {
+          return { error: `Photo upload failed: ${upErr.message}` };
+        }
+        photoExt = ext;
+      }
+
+      const actionData = new FormData();
+      actionData.set("birdId", birdId);
+      actionData.set("sightingId", sightingId);
+      if (photoExt) actionData.set("photoExt", photoExt);
+      for (const key of ["count", "notes", "observed_at"]) {
+        const v = formData.get(key);
+        if (v != null) actionData.set(key, String(v));
+      }
+
+      return markAsSeen(prev, actionData);
+    },
     {},
   );
   const [expanded, setExpanded] = useState(false);
@@ -33,8 +91,6 @@ export function MarkSeenForm({ birdId, totalSightings }: Props) {
       className="flex flex-col gap-4"
       key={state.ok ? "logged" : "logging"}
     >
-      <input type="hidden" name="birdId" value={birdId} />
-
       {!expanded ? (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Button type="submit" size="lg" disabled={isPending} className="sm:px-8">
@@ -85,17 +141,16 @@ export function MarkSeenForm({ birdId, totalSightings }: Props) {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor={photoInputId}>Photos (optional)</Label>
+            <Label htmlFor={photoInputId}>Photo (optional)</Label>
             <Input
               id={photoInputId}
-              name="photos"
+              name="photo"
               type="file"
               accept="image/*"
-              multiple
               className="h-auto py-2"
             />
             <p className="text-xs text-brown/55">
-              Up to 6 photos, 5MB each — JPEG, PNG, WebP, or HEIC.
+              Up to 10MB — JPEG, PNG, WebP, or HEIC.
             </p>
           </div>
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -137,4 +192,28 @@ function defaultLocalDatetime(): string {
   const now = new Date();
   const offset = now.getTimezoneOffset() * 60_000;
   return new Date(now.getTime() - offset).toISOString().slice(0, 16);
+}
+
+function filenameExt(name: string): string | null {
+  const idx = name.lastIndexOf(".");
+  if (idx < 0) return null;
+  const ext = name.slice(idx + 1).toLowerCase();
+  return /^[a-z0-9]{2,5}$/.test(ext) ? ext : null;
+}
+
+function mimeExt(mime: string): string | null {
+  switch (mime) {
+    case "image/jpeg":
+      return "jpg";
+    case "image/png":
+      return "png";
+    case "image/webp":
+      return "webp";
+    case "image/heic":
+      return "heic";
+    case "image/heif":
+      return "heif";
+    default:
+      return null;
+  }
 }
