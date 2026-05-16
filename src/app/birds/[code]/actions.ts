@@ -101,3 +101,84 @@ export async function markAsSeen(
   revalidatePath("/feed");
   return { ok: true };
 }
+
+export async function updateSightingCount(
+  sightingId: string,
+  count: number,
+): Promise<ActionResult> {
+  if (!UUID_RE.test(sightingId)) return { error: "Bad sighting id." };
+  if (!Number.isInteger(count) || count < 1 || count > 9999) {
+    return { error: "Count must be between 1 and 9999." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
+
+  const { error } = await supabase
+    .from("sightings")
+    .update({ count })
+    .eq("id", sightingId)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/birds", "layout");
+  revalidatePath("/me");
+  revalidatePath("/feed");
+  return { ok: true };
+}
+
+export async function deleteSighting(
+  sightingId: string,
+): Promise<ActionResult> {
+  if (!UUID_RE.test(sightingId)) return { error: "Bad sighting id." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
+
+  const { data: existing } = await supabase
+    .from("sightings")
+    .select("photos")
+    .eq("id", sightingId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!existing) return { error: "Sighting not found." };
+
+  const { error } = await supabase
+    .from("sightings")
+    .delete()
+    .eq("id", sightingId)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+
+  const photoUrls = (existing.photos as string[] | null) ?? [];
+  const photoPaths = photoUrls
+    .map(extractStoragePath)
+    .filter((p): p is string => p !== null);
+  if (photoPaths.length > 0) {
+    await supabase.storage.from(PHOTO_BUCKET).remove(photoPaths);
+  }
+
+  revalidatePath("/birds", "layout");
+  revalidatePath("/me");
+  revalidatePath("/feed");
+  return { ok: true };
+}
+
+function extractStoragePath(publicUrl: string): string | null {
+  try {
+    const url = new URL(publicUrl);
+    const marker = `/${PHOTO_BUCKET}/`;
+    const i = url.pathname.indexOf(marker);
+    return i >= 0 ? url.pathname.slice(i + marker.length) : null;
+  } catch {
+    return null;
+  }
+}

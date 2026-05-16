@@ -7,6 +7,7 @@ import { type RarityTier } from "@/lib/rarity";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "../AppHeader";
 import { MarkSeenForm } from "./MarkSeenForm";
+import { YourSightings } from "./YourSightings";
 
 type Props = {
   params: Promise<{ code: string }>;
@@ -38,11 +39,15 @@ export default async function BirdDetailPage({ params }: Props) {
 
   if (!bird) notFound();
 
-  const { count: sightingCount } = await supabase
+  const { data: yourSightingsRows } = await supabase
     .from("sightings")
-    .select("id", { count: "exact", head: true })
+    .select("id, observed_at, count, photos")
     .eq("user_id", user.id)
-    .eq("bird_id", bird.id);
+    .eq("bird_id", bird.id)
+    .order("observed_at", { ascending: false });
+
+  const yourSightings = yourSightingsRows ?? [];
+  const sightingCount = yourSightings.length;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -115,8 +120,10 @@ export default async function BirdDetailPage({ params }: Props) {
               <MarkSeenForm
                 birdId={bird.id}
                 userId={user.id}
-                totalSightings={sightingCount ?? 0}
+                totalSightings={sightingCount}
               />
+
+              <YourSightings sightings={yourSightings} />
 
               {bird.wiki_url ? (
                 <a
